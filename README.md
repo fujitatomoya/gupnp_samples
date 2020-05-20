@@ -35,7 +35,31 @@ Here in this sample and tutorials focuses on GUPnP, GSSDP and GUPnP-Tools.
 - [GUPnP](./doc/gupnp.md)
 - [GUPnP-Tools](./doc/gupnp-tools.md)
 
-### Sample
+### Samples
+
+#### Required Packages
+
+```
+sudo apt-get install gobject-introspection
+sudo apt install libgirepository1.0-dev
+sudo apt-get install valac
+```
+
+#### GSSDP Examples
+
+- [gssdp_examples](./gssdp_examples)
+
+```
+> cd gssdp_examples
+> mkdir build
+> cd build
+> cmake ..
+> make
+> publisher (terminal-1)
+> browser (terminal-2)
+```
+
+#### GUPnP Examples
 
 ***[W.I.P]***
 
