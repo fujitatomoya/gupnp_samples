@@ -40,9 +40,7 @@ Here in this sample and tutorials focuses on GUPnP, GSSDP and GUPnP-Tools.
 #### Required Packages
 
 ```
-sudo apt install gobject-introspection
-sudo apt install libgirepository1.0-dev
-sudo apt install valac
+sudo apt install gobject-introspection libgirepository1.0-dev valac libgssdp-1.0-dev libgupnp-1.0-dev libgtk-3-dev gupnp-tools
 ```
 
 #### GSSDP Examples
