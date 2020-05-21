@@ -55,15 +55,26 @@ sudo apt install valac
 > cd build
 > cmake ..
 > make
-> publisher (terminal-1)
-> browser (terminal-2)
+> ./browser (terminal-1)
+> ./publisher (terminal-2)
 ```
 
 #### GUPnP Examples
 
-***[W.I.P]***
+- [gupnp_examples](./gupnp_examples)
+
+```
+> cd gupnp_examples
+> mkdir build
+> cd build
+> cmake ..
+> make
+> ./server (terminal-1)
+> ./client toggle (terminal-2)
+```
 
 ### Reference
 
 - [GUPnP Project](https://wiki.gnome.org/Projects/GUPnP)
 - [Github Mirror](https://github.com/GNOME)
+- 
