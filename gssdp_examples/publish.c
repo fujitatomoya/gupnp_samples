@@ -1,68 +1,85 @@
-/* 
- * Copyright (C) 2006 OpenedHand Ltd.
- *
- * Author: Jorn Baayen <jorn@openedhand.com>
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Library General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Library General Public License for more details.
- *
- * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
- */
-
 #include <libgssdp/gssdp.h>
 #include <gio/gio.h>
 #include <stdlib.h>
 
-int
-main (G_GNUC_UNUSED int    argc,
-      G_GNUC_UNUSED char **argv)
-{
-        GSSDPClient *client;
-        GSSDPResourceGroup *resource_group;
-        GError *error;
-        GMainLoop *main_loop;
+static GMainLoop *main_loop;
+static GSSDPResourceGroup *resource_group;
 
-#if !GLIB_CHECK_VERSION (2, 35, 0)
-        g_type_init ();
+void* thread_function(void *data)
+{
+  sleep(1);
+  // enable service
+  g_print("Enable Service: http://127.0.0.1:9999\n");
+  gssdp_resource_group_set_available(resource_group, TRUE);
+
+  sleep(5);
+
+  // disbale service
+  g_print("Disable Service: http://127.0.0.1:9999\n");
+  gssdp_resource_group_set_available(resource_group, FALSE);
+
+  sleep(5);
+
+  // enale service
+  g_print("Eable Service: http://127.0.0.1:9999\n");
+  gssdp_resource_group_set_available(resource_group, TRUE);
+
+  sleep(5);
+
+  g_main_loop_quit(main_loop); 
+  return NULL; 
+
+}
+
+int
+main(
+  G_GNUC_UNUSED int    argc,
+  G_GNUC_UNUSED char **argv)
+{
+  GSSDPClient *client;
+  GError *error;
+  GThread *ps_thread;
+
+#if !GLIB_CHECK_VERSION(2, 35, 0)
+  // Ubuntu18.04.4 2.56.4, so it does not require here.
+  g_type_init();
 #endif
 
-        error = NULL;
-        client = gssdp_client_new (NULL, NULL, &error);
-        if (error) {
-                g_printerr ("Error creating the GSSDP client: %s\n",
-                            error->message);
+  main_loop = g_main_loop_new(NULL, FALSE);
 
-                g_error_free (error);
+  error = NULL;
+  // interface will be auto-detected. But it can be specified with "lo".
+  client = gssdp_client_new(NULL, NULL, &error);
+  if (error || client == NULL) {
+    g_printerr("Error creating the GSSDP client: %s\n", error->message);
+    g_error_free(error);
+    return EXIT_FAILURE;
+  }
 
-                return EXIT_FAILURE;
-        }
+  // get resource group associated with client.
+  resource_group = gssdp_resource_group_new(client);
+  if (resource_group == NULL) {
+    g_printerr("Error creating the GSSDPResourceGroup associated with client.\n");
+    return EXIT_FAILURE;
+  }
 
-        resource_group = gssdp_resource_group_new (client);
+  /*
+   * uuid is unique idetification for this device.
+   * UPnP transmits data via http, this is UPnP(also SSDP) specification.
+   */
+  gssdp_resource_group_add_resource_simple(
+    resource_group,
+    "upnp:test:device",
+    "uuid:24ba8a98-2da0-4360-9bb3-3014914604a4::upnp:test:device",
+    "http://127.0.0.1:9999"); // just for temporary, anything as long as it is text.
 
-        gssdp_resource_group_add_resource_simple
-                (resource_group,
-                 "upnp:rootdevice",
-                 "uuid:1234abcd-12ab-12ab-12ab-1234567abc12::upnp:rootdevice",
-                 "http://192.168.1.100/");
+  ps_thread = g_thread_new("thread", thread_function, main_loop); 
+  g_main_loop_run(main_loop);
+  g_main_loop_unref(main_loop);
+  
+  // clearup objects.
+  g_object_unref(resource_group);
+  g_object_unref(client);
 
-        gssdp_resource_group_set_available (resource_group, TRUE);
-
-        main_loop = g_main_loop_new (NULL, FALSE);
-        g_main_loop_run (main_loop);
-        g_main_loop_unref (main_loop);
-
-        g_object_unref (resource_group);
-        g_object_unref (client);
-
-        return EXIT_SUCCESS;
+  return EXIT_SUCCESS;
 }
